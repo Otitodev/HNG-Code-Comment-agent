@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FastAPI on AWS Lambda via Mangum and API Gateway HTTP API
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Architectures:
+      - x86_64
+    MemorySize: 512
+    Timeout: 30
+
+Parameters:
+  MistralApiKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Mistral API key
+  TelexAgentApiKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Telex Agent API key
+  DatabaseUrl:
+    Type: String
+    Default: ''
+    Description: Database connection string (e.g., postgres://user:pass@host:5432/dbname)
+  ApiBaseUrl:
+    Type: String
+    Default: ''
+    Description: Optional base URL for your service
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: lambda_handler.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          MISTRAL_API_KEY: !Ref MistralApiKey
+          TELEX_AGENT_API_KEY: !Ref TelexAgentApiKey
+          DATABASE_URL: !Ref DatabaseUrl
+          API_BASE_URL: !Ref ApiBaseUrl
+      Events:
+        RootAny:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+        ProxyAny:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API endpoint
+    Value: !GetAtt HttpApi.ApiEndpoint
+  FunctionName:
+    Description: Deployed Lambda function name
+    Value: !Ref ApiFunction
