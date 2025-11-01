@@ -96,3 +96,95 @@ async def generate_daily_tip() -> str:
     except Exception as e:
         print(f"AI tip generation failed, using fallback: {e}")
         return get_fallback_daily_tip()
+
+async def generate_language_specific_tip(language: str) -> str:
+    """Generate a daily tip specific to a programming language"""
+    from app.services.language_detector import get_language_specific_tip_prompt
+    
+    seed = hashlib.sha256(language.encode()).hexdigest()[:6]
+    prompt = get_language_specific_tip_prompt(language) + f" Seed: {seed}"
+    
+    messages = [
+        {"role": "system", "content": f"You are a concise assistant that writes daily tips for {language} developers. Be specific and practical."},
+        {"role": "user", "content": prompt}
+    ]
+    
+    try:
+        return await post_chat(messages)
+    except Exception as e:
+        print(f"AI language-specific tip generation failed, using fallback: {e}")
+        return get_fallback_language_tip(language)
+
+def get_fallback_language_tip(language: str) -> str:
+    """Fallback language-specific tips when AI is unavailable"""
+    language_tips = {
+        'python': [
+            "🐍 Use list comprehensions for cleaner, more Pythonic code: `[x*2 for x in range(10)]`",
+            "📦 Use virtual environments to isolate project dependencies: `python -m venv myenv`",
+            "🔍 Use f-strings for readable string formatting: `f'Hello {name}!'`",
+            "⚡ Use `enumerate()` instead of manual counters: `for i, item in enumerate(items):`"
+        ],
+        'javascript': [
+            "🚀 Use arrow functions for cleaner syntax: `const add = (a, b) => a + b`",
+            "📋 Use destructuring for cleaner object access: `const {name, age} = person`",
+            "🔄 Use `async/await` instead of promise chains for better readability",
+            "🎯 Use `const` by default, `let` when reassigning, avoid `var`"
+        ],
+        'java': [
+            "☕ Use StringBuilder for multiple string concatenations instead of + operator",
+            "🏗️ Follow naming conventions: classes PascalCase, methods camelCase",
+            "🔒 Make fields private and use getters/setters for encapsulation",
+            "📚 Use ArrayList instead of Vector for better performance"
+        ],
+        'typescript': [
+            "🎯 Use strict type checking: enable `strict: true` in tsconfig.json",
+            "🔧 Define interfaces for object shapes: `interface User { name: string; age: number; }`",
+            "⚡ Use union types for flexible parameters: `string | number`",
+            "🛡️ Use optional chaining: `user?.profile?.email` for safe property access"
+        ]
+    }
+    
+    tips = language_tips.get(language, [
+        f"💡 Write clean, readable {language} code with meaningful variable names!",
+        f"🧪 Test your {language} code thoroughly before deployment!",
+        f"📝 Comment complex {language} logic for future maintainers!"
+    ])
+    
+    import datetime
+    day_of_year = datetime.datetime.now().timetuple().tm_yday
+    return tips[day_of_year % len(tips)]
+
+class MistralService:
+    """
+    Service class for Mistral AI interactions
+    """
+    
+    def __init__(self):
+        self.model = MISTRAL_MODEL
+        self.api_url = API_URL
+    
+    async def generate_response(self, prompt: str, system_message: str = None) -> str:
+        """
+        Generate a response using Mistral AI
+        
+        Args:
+            prompt: The user prompt
+            system_message: Optional system message to set context
+            
+        Returns:
+            Generated response string
+        """
+        messages = []
+        
+        if system_message:
+            messages.append({"role": "system", "content": system_message})
+        else:
+            messages.append({"role": "system", "content": "You are a helpful AI assistant."})
+            
+        messages.append({"role": "user", "content": prompt})
+        
+        try:
+            return await post_chat(messages)
+        except Exception as e:
+            print(f"Mistral API error: {e}")
+            return "I'm having trouble generating a response right now. Please try again later."

@@ -1,0 +1,22 @@
+# Reduce Docker build context
+.git
+.aws-sam
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+node_modules
+.env
+*.log
+*.db
+*.sqlite*
+.DS_Store
+.idea
+.vscode
+coverage*
+.dist
+dist
+build
+tests

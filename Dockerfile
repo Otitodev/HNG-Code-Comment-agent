@@ -1,15 +1,12 @@
-FROM python:3.11-slim
+FROM public.ecr.aws/lambda/python:3.11
 
-WORKDIR /app
-
+# Install dependencies into the Lambda task root so they are on PYTHONPATH
 COPY requirements.txt .
+RUN python -m pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy application code into the Lambda task root
+COPY . ${LAMBDA_TASK_ROOT}
 
-COPY . .
-
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 8080
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Set the handler (module.function)
+CMD ["lambda_handler.handler"]

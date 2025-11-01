@@ -57,3 +57,8 @@ logs/
 
 # AWS SAM build artifacts
 .aws-sam/
+DEPLOYMENT*
+samconfig.toml
+sm.txt
+template.yaml
+*test*
