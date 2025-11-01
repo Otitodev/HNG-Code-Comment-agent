@@ -14,6 +14,11 @@ class Config:
     # Database Configuration
     DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")
     
+    # Supabase Configuration
+    SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL")
+    SUPABASE_ANON_KEY: Optional[str] = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    
     # API Configuration
     API_BASE_URL: Optional[str] = os.getenv("API_BASE_URL", "")
     
