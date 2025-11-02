@@ -38,9 +38,16 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     try:
+        # Test database connection
+        async with engine.connect() as conn:
+            await conn.execute("SELECT 1")
+        logger.info("✅ Database connection successful")
+        
+        # Create tables if they don't exist
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        logger.info("✅ Database connection successful")
+        logger.info("✅ Database tables verified")
+        
     except Exception as e:
         logger.error(f"⚠️  Database connection failed: {e}")
         logger.info("App will run but some endpoints may not work")
