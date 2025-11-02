@@ -39,8 +39,9 @@ app.add_middleware(
 async def startup_event():
     try:
         # Test database connection
+        from sqlalchemy import text
         async with engine.connect() as conn:
-            await conn.execute("SELECT 1")
+            await conn.execute(text("SELECT 1"))
         logger.info("✅ Database connection successful")
         
         # Create tables if they don't exist
@@ -88,3 +89,13 @@ async def health_check():
         "status": "healthy",
         "message": "Telex AI Agent is operational"
     }
+
+@app.get("/kaithheathcheck")
+async def leapcell_health_check():
+    """Leapcell health check endpoint"""
+    return {"status": "ok"}
+
+@app.get("/kaithhealthcheck")
+async def leapcell_health_check_alt():
+    """Alternative Leapcell health check endpoint"""
+    return {"status": "ok"}
